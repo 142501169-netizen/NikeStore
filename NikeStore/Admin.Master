@@ -1,0 +1,87 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Admin.Master.cs" Inherits="NikeStore.Admin" %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shoe Store Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #1e2a38;
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            top: 0;
+            left: 0;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 22px;
+        }
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #ff6f61;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+    </style>
+
+    <asp:ContentPlaceHolder ID="head" runat="server" />
+</head>
+
+<body>
+<form runat="server">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Shoe Store Admin</h2>
+
+        <a href="HomePage.aspx">Back to home</a>
+        <a href="AddProducts.aspx">Add Products</a>
+        <a href="AddNewUsers.aspx">Add Users</a>
+        <a href="Delete.aspx">Orders</a>
+        <a href="Update.aspx">Update</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
+    </div>
+
+</form>
+</body>
+</html>
