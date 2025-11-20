@@ -1,0 +1,652 @@
+﻿i want to be able to pull in my product from my PlaceOrder and be shown on my Cart page 
+
+
+
+<%@ Page Title="Place Order" Language="C#" MasterPageFile="~/Site1.Master" AutoEventWireup="true" CodeFile="PlaceOrder.aspx.cs" Inherits="NikeStore.PlaceOrder" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #000000, #1a1a1a, #222);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* --- Fade-in animation for whole page --- */
+        .order-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            max-width: 1100px;
+            margin: 100px auto;
+            padding: 50px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.05);
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Shoe Image --- */
+        .shoe-preview {
+            flex: 1;
+            text-align: center;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .shoe-img {
+            max-width: 450px;
+            width: 100%;
+            border-radius: 20px;
+            transition: transform 0.5s ease, filter 0.5s ease;
+        }
+
+        .shoe-img:hover {
+            transform: scale(1.08);
+            filter: brightness(1.2);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- Details --- */
+        .order-details {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .order-details h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .order-details h4 {
+            color: #bbb;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .order-details p {
+            color: #ddd;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .order-details h3 {
+            color: #00ff88;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        /* --- Sizes --- */
+        .size-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .size-option input[type="radio"] {
+            display: none;
+        }
+
+        .size-option label {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border-radius: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .size-option input[type="radio"]:checked + label {
+            background: #00ff88;
+            color: #000;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        .size-option label:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+
+        /* --- Add to Bag Button --- */
+        .btn-placeorder {
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            border: none;
+            color: #000;
+            padding: 16px 50px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-placeorder::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.4);
+            transition: left 0.4s ease;
+        }
+
+        .btn-placeorder:hover::after {
+            left: 100%;
+        }
+
+        .btn-placeorder:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #00ff88;
+        }
+
+        /* --- Popup Background --- */
+        .popup-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 900;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- Centered Popup --- */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.5);
+            width: 400px;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            animation: fadeZoomIn 0.5s forwards;
+        }
+
+        @keyframes fadeZoomIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes fadeZoomOut {
+            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+        }
+
+        .popup img {
+            width: 100px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .popup h4 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .popup p {
+            color: #00ff88;
+            font-size: 1.1rem;
+        }
+
+        .popup button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .popup button:hover {
+            background: #00ccff;
+        }
+    </style>
+</asp:Content>
+
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <div class="order-container">
+        <div class="shoe-preview">
+            <img src="17.jpg" id="imgShoe" runat="server" class="shoe-img" />
+        </div>
+
+        <div class="order-details">
+            <h2><asp:Label ID="lblName" runat="server" /></h2>
+            <h4><asp:Label ID="lblBrand" runat="server" /></h4>
+            <p><asp:Label ID="lblDescription" runat="server" /></p>
+            <h3>R <asp:Label ID="lblPrice" runat="server" /></h3>
+
+            <h4>Select Size</h4>
+            <div class="size-container">
+                <asp:Repeater ID="rptSizes" runat="server">
+                    <ItemTemplate>
+                        <div class="size-option">
+                            <input type="radio" id="size_<%# Container.DataItem %>" name="shoeSize" value='<%# Container.DataItem %>' required />
+                            <label for="size_<%# Container.DataItem %>"><%# Container.DataItem %></label>
+                        </div>
+                    </ItemTemplate>
+                </asp:Repeater>
+            </div>
+
+            <asp:HiddenField ID="hiddenShoeId" runat="server" />
+            <asp:Button ID="btnPlaceOrder" runat="server" Text="Add to Bag 🛍️" CssClass="btn-placeorder" OnClick="btnPlaceOrder_Click" />
+        </div>
+    </div>
+
+    <!-- Background Blur -->
+    <div id="popupBg" class="popup-bg"></div>
+
+    <!-- Popup -->
+    <div id="popupBag" class="popup">
+        <img src="18.jpg" id="popupImg" runat="server" />
+        <h4 id="popupName" runat="server"></h4>
+        <p id="popupPrice" runat="server"></p>
+        <button onclick="window.location='Cart.aspx'">View Cart</button>
+    </div>
+
+    <script type="text/javascript">
+        function showPopup(name, size, price, image) {
+            const popup = document.getElementById('popupBag');
+            const popupBg = document.getElementById('popupBg');
+            const popupImg = document.getElementById('<%= popupImg.ClientID %>');
+            const popupName = document.getElementById('<%= popupName.ClientID %>');
+            const popupPrice = document.getElementById('<%= popupPrice.ClientID %>');
+
+            popupImg.src = image;
+            popupName.textContent = name + " (Size: " + size + ")";
+            popupPrice.textContent = "R " + price;
+
+            popup.style.display = 'block';
+            popupBg.style.display = 'block';
+            setTimeout(() => {
+                popupBg.style.opacity = '1';
+                popup.style.opacity = '1';
+            }, 10);
+
+            setTimeout(() => {
+                popup.style.animation = 'fadeZoomOut 0.5s forwards';
+                popupBg.style.opacity = '0';
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                    popup.style.animation = '';
+                    popupBg.style.display = 'none';
+                }, 500);
+            }, 3000);
+        }
+    </script>
+</asp:Content>
+
+using System;
+using System.Configuration;
+using System.Data.SqlClient;
+
+namespace NikeStore
+{
+    public partial class PlaceOrder : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                string id = Request.QueryString["id"];
+                if (!string.IsNullOrEmpty(id))
+                    LoadShoeDetails(id);
+            }
+        }
+
+        private void LoadShoeDetails(string id)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["NikeDBConnectionString"].ConnectionString;
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                string query = "SELECT * FROM Shoes WHERE Id = @Id";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    lblName.Text = reader["Name"].ToString();
+                    lblBrand.Text = reader["Brand"].ToString();
+                    lblPrice.Text = Convert.ToDecimal(reader["Price"]).ToString("F2");
+                    lblDescription.Text = reader["Discriptoin"].ToString();
+                    imgShoe.Src = reader["Image"].ToString();
+                    hiddenShoeId.Value = reader["Id"].ToString();
+                }
+                reader.Close();
+            }
+
+            // Example shoe sizes
+            rptSizes.DataSource = new string[] { "UK 6", "UK 7", "UK 8", "UK 9", "UK 10", "UK 11", "UK 12" };
+            rptSizes.DataBind();
+        }
+
+        protected void btnPlaceOrder_Click(object sender, EventArgs e)
+        {
+            string id = hiddenShoeId.Value;
+            string name = lblName.Text;
+            string brand = lblBrand.Text;
+            string price = lblPrice.Text;
+            string image = imgShoe.Src;
+            string size = Request.Form["shoeSize"];
+
+            // ✅ Update cart (or placeholder DB logic)
+            string connStr = ConfigurationManager.ConnectionStrings["NikeDBConnectionString"].ConnectionString;
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                string query = "UPDATE Shoes SET Quantity = ISNULL(Quantity,0) + 1 WHERE Id = @Id";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+
+            // ✅ Safe JavaScript trigger for popup
+            string js = "setTimeout(function() { showPopup('" + name.Replace("'", "\\'") + "', '" + size.Replace("'", "\\'") + "', '" + price.Replace("'", "\\'") + "', '" + image.Replace("'", "\\'") + "'); }, 300);";
+            ClientScript.RegisterStartupScript(this.GetType(), "Popup", js, true);
+        }
+
+    }
+}
+
+
+<%@ Page Title="My Bag" Language="C#" MasterPageFile="~/Site1.Master" AutoEventWireup="true" CodeFile="Cart.aspx.cs" Inherits="NikeStore.Cart" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+
+<style>
+body { font-family: 'Poppins', sans-serif; background: #f8f9fb; margin:0; }
+.cart-wrapper { max-width:1100px; margin:60px auto; background:#fff; border-radius:12px; padding:32px; box-shadow:0 10px 25px rgba(0,0,0,0.08); animation: fadeIn .5s ease; }
+@keyframes fadeIn { from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none} }
+.cart-table{ width:100%; border-collapse:collapse; margin-top:10px; }
+.cart-table th,.cart-table td{ padding:14px; text-align:center; border-bottom:1px solid #eee; vertical-align:middle; }
+.cart-table th{ font-weight:700; color:#333; }
+.cart-table img{ width:80px; height:80px; border-radius:8px; object-fit:cover; }
+
+.remove-btn{ background:none; border:none; color:#e63946; font-size:20px; cursor:pointer; transition:transform .18s; }
+.remove-btn:hover{ transform:scale(1.15); }
+.qty-box{ width:64px; padding:8px; text-align:center; border:1px solid #d0d7de; border-radius:8px; }
+
+.summary { margin-top:22px; text-align:right; }
+.summary .total { font-size:20px; font-weight:700; margin-bottom:8px; }
+
+.payment-section { margin-top:28px; padding-top:18px; border-top:1px solid #f0f0f0; }
+.payment-option{ margin:10px 0; font-size:15px; }
+.checkout-btn{ background:#007bff; color:#fff; border:none; border-radius:28px; padding:12px 28px; cursor:pointer; font-size:15px; transition:all .18s; }
+.checkout-btn:hover{ transform:translateY(-3px); background:#0056b3; }
+
+#cardForm { display:none; margin-top:12px; max-width:450px; }
+.card-input{ display:block; width:100%; padding:10px 12px; margin:8px 0; border-radius:8px; border:1px solid #d0d7de; }
+
+#successPopup { display:none; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background:#fff; padding:32px 40px; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,0.18); text-align:center; z-index:9999; }
+#successPopup h2{ margin:0 0 8px 0; color:#28a745; }
+#successPopup p{ margin:0 0 16px 0; color:#333; }
+#successPopup .close-btn{ background:#007bff; color:#fff; border:none; padding:8px 18px; border-radius:8px; cursor:pointer; }
+
+@media (max-width:900px){ .cart-wrapper{ padding:18px } .cart-table th:nth-child(2), .cart-table td:nth-child(2){ display:none; } }
+</style>
+
+<script type="text/javascript">
+
+    function updateTotal() {
+        var rows = document.querySelectorAll('.cart-row');
+        var total = 0;
+        rows.forEach(function (row) {
+            var priceText = row.querySelector('.price').innerText.replace('R ', '').replace(',', '');
+            var price = parseFloat(priceText) || 0;
+            var qty = parseInt(row.querySelector('.qty-box').value) || 1;
+            var sub = price * qty;
+            row.querySelector('.subtotal').innerText = 'R ' + sub.toFixed(2);
+            total += sub;
+        });
+        document.getElementById('<%= lblTotal.ClientID %>').innerText = 'Total: R ' + total.toFixed(2);
+    }
+
+    function onPaymentChange() {
+        var cardRadio = document.getElementById('cardRadio');
+        var cardForm = document.getElementById('cardForm');
+        cardForm.style.display = cardRadio.checked ? 'block' : 'none';
+    }
+
+    function proceedToPay() {
+        var cardRadio = document.getElementById('cardRadio');
+        var cashRadio = document.getElementById('cashRadio');
+
+        if (!cardRadio.checked && !cashRadio.checked) {
+            alert('Select a payment method.');
+            return;
+        }
+
+        if (cardRadio.checked) {
+            var number = document.getElementById('cardNumber').value.trim();
+            var expiry = document.getElementById('cardExpiry').value.trim();
+            var cvv = document.getElementById('cardCVV').value.trim();
+
+            if (number.length < 12) { alert('Enter a valid card number.'); return; }
+            if (!/^\d{2}\/\d{2}$/.test(expiry)) { alert('Expiry should be MM/YY.'); return; }
+            if (!/^\d{3,4}$/.test(cvv)) { alert('Enter a valid CVV.'); return; }
+
+            document.getElementById('<%= hfPaymentMethod.ClientID %>').value = 'Card';
+        document.getElementById('<%= hfCardLast4.ClientID %>').value = number.slice(-4);
+    }
+    else if (cashRadio.checked) {
+        document.getElementById('<%= hfPaymentMethod.ClientID %>').value = 'Cash';
+        document.getElementById('<%= hfCardLast4.ClientID %>').value = '';
+    }
+
+    document.getElementById('<%= btnProcessPayment.ClientID %>').click();
+    }
+
+    function showSuccessPopup() {
+        var p = document.getElementById('successPopup');
+        if (p) p.style.display = 'block';
+    }
+
+    function closePopup() {
+        document.getElementById('successPopup').style.display = 'none';
+    }
+
+    window.addEventListener('load', function () {
+        updateTotal();
+        onPaymentChange();
+    });
+
+</script>
+</asp:Content>
+
+
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+
+<div class="cart-wrapper">
+
+<h2>🛒 Shopping Cart</h2>
+
+<asp:Repeater ID="Repeater1" runat="server" OnItemCommand="rptCart_ItemCommand">
+    <HeaderTemplate>
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Remove</th>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+    </HeaderTemplate>
+
+    <ItemTemplate>
+        <tr class="cart-row">
+            <td>
+                <asp:LinkButton ID="btnRemove" runat="server" CommandName="Remove" 
+                    CommandArgument='<%# Eval("Id") %>' CssClass="remove-btn" Title="Remove">×</asp:LinkButton>
+            </td>
+            <td><img src='<%# Eval("Image") %>' alt="Product" /></td>
+            <td style="text-align:left;"><%# Eval("Name") %><br /><small>Brand: <%# Eval("Brand") %></small></td>
+            <td class="price">R <%# Eval("Price", "{0:F2}") %></td>
+            <td>
+                <input name="qty" type="number" class="qty-box" value='<%# Eval("Quantity") %>' min="1" onchange="updateTotal()" />
+            </td>
+            <td class="subtotal">R <%# (Convert.ToDecimal(Eval("Price")) * Convert.ToInt32(Eval("Quantity"))).ToString("F2") %></td>
+        </tr>
+    </ItemTemplate>
+
+    <FooterTemplate>
+        </tbody>
+        </table>
+    </FooterTemplate>
+</asp:Repeater>
+
+
+<div class="summary">
+    <div class="total">
+        <asp:Label ID="lblTotal" runat="server" Text="Total: R 0.00"></asp:Label>
+    </div>
+</div>
+
+<div class="payment-section">
+
+    <h3>💳 Choose Payment Method</h3>
+
+    <div class="payment-option">
+        <input type="radio" id="cardRadio" name="payment" value="Card" onclick="onPaymentChange()" checked />
+        <label for="cardRadio">Pay with Card</label>
+    </div>
+
+    <div class="payment-option">
+        <input type="radio" id="cashRadio" name="payment" value="Cash" onclick="onPaymentChange()" />
+        <label for="cashRadio">Pay with Cash</label>
+    </div>
+
+    <div id="cardForm">
+        <input id="cardNumber" class="card-input" placeholder="Card Number" maxlength="19" />
+        <input id="cardExpiry" class="card-input" placeholder="Expiry (MM/YY)" maxlength="5" />
+        <input id="cardCVV" class="card-input" placeholder="CVV" maxlength="4" />
+    </div>
+
+    <div style="margin-top:14px;">
+        <button type="button" class="checkout-btn" onclick="proceedToPay()">Proceed to Pay</button>
+    </div>
+
+</div>
+
+<asp:HiddenField ID="hfPaymentMethod" runat="server" />
+<asp:HiddenField ID="hfCardLast4" runat="server" />
+
+<asp:Button ID="btnProcessPayment" runat="server" Text="Process" 
+    OnClick="btnProcessPayment_Click" Style="display:none" />
+
+</div>
+
+<!-- Success Popup -->
+<div id="successPopup">
+    <h2>✅ Transaction Complete!</h2>
+    <p>Your payment was successful. Thank you for your order.</p>
+    <button class="close-btn" onclick="closePopup()">Close</button>
+</div>
+
+</asp:Content>
+
+using System;
+using System.Data;
+using System.Web.UI;
+
+namespace NikeStore
+{
+    public partial class Cart : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                LoadCart();
+            }
+        }
+
+        private void LoadCart()
+        {
+            // Load cart from session
+            DataTable dt = Session["Cart"] as DataTable;
+
+            if (dt != null)
+            {
+                Repeater1.DataSource = dt;
+                Repeater1.DataBind();
+            }
+        }
+
+        protected void rptCart_ItemCommand(object source, System.Web.UI.WebControls.RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName == "Remove")
+            {
+                string id = e.CommandArgument.ToString();
+
+                DataTable dt = Session["Cart"] as DataTable;
+
+                if (dt != null)
+                {
+                    // Safe delete using index loop
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        if (dt.Rows[i]["Id"].ToString() == id)
+                        {
+                            dt.Rows.RemoveAt(i);
+                            break;
+                        }
+                    }
+
+                    dt.AcceptChanges();
+                    Session["Cart"] = dt;
+
+                    LoadCart();
+                }
+            }
+        }
+
+        protected void btnProcessPayment_Click(object sender, EventArgs e)
+        {
+            string method = hfPaymentMethod.Value;
+            string last4 = hfCardLast4.Value;
+
+            // OPTIONAL: Save order to DB here
+
+            ScriptManager.RegisterStartupScript(this, this.GetType(),
+                "popup", "showSuccessPopup();", true);
+        }
+    }
+}
